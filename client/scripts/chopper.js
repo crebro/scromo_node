@@ -2,8 +2,6 @@
 const url = "ws://localhost:3000/myWebsocket";
 const mywsServer = new WebSocket(url);
 
-let XAngleValue;
-let YAngleValue;
 let ZAngleValue;
 
 mywsServer.onmessage = function (event) {
@@ -11,9 +9,15 @@ mywsServer.onmessage = function (event) {
   try {
     const parsed = JSON.parse(data);
     if (parsed["event"] === "gyroscope") {
-      XAngleValue = -parsed["x"];
-      YAngleValue = parsed["y"];
       ZAngleValue = parsed["z"];
+      // console.log(parsed["z"]);
+    }
+    if (parsed["event"] === "shake") {
+      if (ZAngleValue < 0) {
+        leftRightKeyPress("right");
+      } else {
+        leftRightKeyPress("left");
+      }
     }
   } catch (error) {
     console.log(error);
@@ -262,42 +266,32 @@ function draw() {
   lumberjack.display();
 }
 
+function leftRightKeyPress(type) {
+  hittingside = type;
+  if (
+    woodarray[0].woodtype === `${type}branch` ||
+    woodarray[1].woodtype === `${type}branch` ||
+    woodarray[2].woodtype === `${type}branch`
+  ) {
+    lumberjack.stunned = true;
+  }
+  lumberjack.hittingside = hittingside;
+  woodarray[0].crush(() => {
+    woodarray.shift();
+    woodarray.push(createWood());
+    lumberjack.hit();
+  });
+  score += 1;
+}
+
 function keyPressed() {
   if (lumberjack.stunned) {
     return;
   }
 
   if (keyCode === LEFT_ARROW) {
-    hittingside = "left";
-    if (
-      woodarray[0].woodtype === "leftbranch" ||
-      woodarray[1].woodtype === "leftbranch" ||
-      woodarray[2].woodtype === "leftbranch"
-    ) {
-      lumberjack.stunned = true;
-    }
-    lumberjack.hittingside = hittingside;
-    woodarray[0].crush(() => {
-      woodarray.shift();
-      woodarray.push(createWood());
-      lumberjack.hit();
-    });
-    score += 1;
+    leftRightKeyPress("left");
   } else if (keyCode === RIGHT_ARROW) {
-    hittingside = "right";
-    if (
-      woodarray[0].woodtype === "rightbranch" ||
-      woodarray[1].woodtype === "rightbranch" ||
-      woodarray[2].woodtype === "rightbranch"
-    ) {
-      lumberjack.stunned = true;
-    }
-    lumberjack.hittingside = hittingside;
-    woodarray[0].crush(() => {
-      woodarray.shift();
-      woodarray.push(createWood());
-      lumberjack.hit();
-    });
-    score += 1;
+    leftRightKeyPress("right");
   }
 }
