@@ -1,3 +1,25 @@
+//Websocekt variables
+const url = "ws://localhost:3000/myWebsocket";
+const mywsServer = new WebSocket(url);
+
+let XAngleValue;
+let YAngleValue;
+let ZAngleValue;
+
+mywsServer.onmessage = function (event) {
+  const { data } = event;
+  try {
+    const parsed = JSON.parse(data);
+    if (parsed["event"] === "gyroscope") {
+      XAngleValue = -parsed["x"];
+      YAngleValue = parsed["y"];
+      ZAngleValue = parsed["z"];
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 let bottomOffset = 200;
 let woodHeight = 200;
 let lumberjackimage;
